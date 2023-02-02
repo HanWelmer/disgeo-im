@@ -5,7 +5,7 @@ Een uitwerking van het gesprek met Han Welmer over hoe bij de BRO logische model
 ## 1 - Aanleiding huidige geautomatiseerde aanpak BRO
 Bij de BRO is in eerste instantie volledig handmatig gewerkt. Maar om **twee belangrijke reden** is ervoor gekozen om (delen van) dit proces te automatiseren:
 
-1. Voor aantal belangrijke `...` aansluiten op standaarden (GML, XSD, Soap, NEN3610, etc.)
+1. Aansluiten op standaarden (GML, XSD, Soap, NEN3610, etc.)
 2. De BRO heeft te maken 26 registratie-objecten; het is dus geen éénmalige actie. Maar, ook als het een eenmalige actie zou zijn, kan _beheer_ een reden zijn om deze werkwijze wel toe te passen.
 
 ## 2 - Visie op relatie Conceptueel en Logisch model
@@ -15,11 +15,11 @@ Het **Conceptuele Model** bevat de gegevens die geregistreerd moeten worden en i
 Om van een conceptueel model naar een logisch model te komen, zijn de volgende stappen nodig:
 
 1. Een **kopie** maken van het conceptuele model
-2. **Trace** aanpassen; van welke conceptuele modelelementen zijn de logische modelelementen zijn afgeleid?
-3. **Vertaalslag** van Nederlandstalige elementen (zoals: _stereotypen_ en _tagged values_) naar Engelstalige elementen.
-4. Hiervoor is meer nodig dan enkel een vertaling, omdat de set van elementen van een conceptueel model niet exact gelijk is aan die van een logisch model. Er zullen dus ook elementen verwijderd of toegevoegd. Er zijn **aparte profielen** voor ****CM**** ([MIM-BRO Grouping NL](http://www.armatiek.nl/Imvertor/wiki/Imvertor-EA-profiles/MIM-BRO%20Grouping%20(NL)%200.9.3.ea-profile.xml)) en **LM** [(NEN3610-BRO Grouping EN)](http://www.armatiek.nl/imvertor/wiki/Imvertor-EA-profiles/NEN3610-BRO%20Grouping%20(EN)%200.9.1.ea-profile.xml).
+2. **Traces** tooevoegen; van welke conceptueel modelelement is een logische modelelement afgeleid?
+3. **Vertaalslag** van Nederlandstalige elementen (zoals: _namen_, _stereotypen_ en _tagged values_) naar Engelstalige elementen.
+4. Hiervoor is meer nodig dan enkel een vertaling, omdat de set van tagged values van een conceptueel model niet exact gelijk is aan die van een logisch model. Er zullen dus ook tagged values worden verwijderd of toegevoegd. Er zijn **aparte profielen** voor ****CM**** ([MIM-BRO Grouping NL](http://www.armatiek.nl/Imvertor/wiki/Imvertor-EA-profiles/MIM-BRO%20Grouping%20(NL)%200.9.3.ea-profile.xml)) en **LM** [(NEN3610-BRO Grouping EN)](http://www.armatiek.nl/imvertor/wiki/Imvertor-EA-profiles/NEN3610-BRO%20Grouping%20(EN)%200.9.1.ea-profile.xml).
 
-Dit is een tijdrovend en arbeidsintensief proces met veel herhalende stappen. Daarom is voor de BRO een script geschreven dat deze stappen geautomatiseerd uitvoert: `Set Tracebility for Set Transformations`.
+Dit is een tijdrovend en arbeidsintensief proces met veel herhalende stappen. Daarom is voor de BRO een script geschreven dat deze stappen geautomatiseerd uitvoert: `Set Tracebility with Transformations`.
 
 ### 3.1 - Van CM naar LM in Enterprise Architect
 De BRO onderscheid de volgende package structuur in Enter:
@@ -43,7 +43,9 @@ Voor de kopie wordt een XMI-export van het conceptuele model gemaakt. De traces 
 De vertaling van de stereotypes en tagged values gebeurd op basis van de eerder genoemde profielen. Zo wordt bijvoorbeeld een `«Objecttype»` vertaald naar een `«FeatureType»`. Die links zijn in de profielen (in EA: _MDG Technology_) gelegd. Hiervoor is een mapping van beide profielen noodzakelijk. Elk stereotype in het profiel van het conceptuele model, moet dus een mapping hebben naar een stereotype in het profiel van het logische model. Verder heb je voor het logische model nog specifieke XSD-stereotypes, bijvoorbeeld `XML schema location` op `«Package»`.
 
 ### 3.2 - Script aanroepen
-Je kiest een locatie in de project browser waar je het logische model wilt opnemen. Dan kies je _Specialize_ > `Set Tracebility for Set Transformations` > _Please select original package_. Er komt een nieuw venster. Dan start het script. Dat maakt nu eerst een_ full duplication_ van het conceptuele model. Daarna worden de traces gelegd. Als dat klaar is wordt het transactiemodel handmatig in het logische model gemodelleerd. Op basis daarvan worden vervolgens met Imvertor XSD's gegenereerd. Voor de BRO-doeleinden worden die XSD's dan nog op een aantal punten handmatig aangepast.
+Je kiest een locatie in de project browser waar je het logische model wilt opnemen. Dan kies je _Specialize_ > _Scripts_ > `Set Tracebility with Transformations` > _Please select original package_. Er komt een nieuw venster. Dan start het script. Dat maakt nu eerst een _full duplication_ van het conceptuele model. Daarna worden de traces gelegd, de naam en alternatieve naam verwisseld en de stereotypes en tagged values 'vertaald'.
+
+Als dat klaar is wordt het transactiemodel handmatig in het logische model gemodelleerd. Op basis daarvan worden vervolgens met Imvertor XSD's gegenereerd. Voor de BRO-doeleinden worden die XSD's dan nog op een aantal punten handmatig aangepast.
 
 ### 3.3 - Workflow voor het maken van het logische model
 
@@ -57,8 +59,8 @@ Controleer op basis van het _process report_ van Imvertor op specifieke onderdel
  - Aanbieden bij Imvertor
  - Modelelementen op alfabetissche volgorde zetten (eis vanuit BRO dat elementen op alfabetische volgorde in XSD's staan)
  - Versie toevoegen aan SVN
- - BRO-common toevoegen (dit is een overkoepelend model)
- - BRO-common 'omhangen' (`...`)
+ - BRO-common toevoegen (dit is een overkoepelend model met generieke modelelementen)
+ - BRO-common 'omhangen' (expliciet gemodelleerde modelelementen vervangen door tegenhanger uit brocommon)
 
 
 #### 3.3.3 - Stap 2: Model Uitbreden Met Inname- en Uitgifteservice
@@ -71,11 +73,9 @@ Verwerken van het transactiemodel in het logische model. Het gaat hier concreet 
  - Elke _increment_ een nieuwe branch op GitHub
  - In eerste instatie BRO-common met de hand
  - Later met Imvertor
- - Imvertor volgt heel strikt gml-xml encodingsrules
- - Bij het handmatige werk doe je dat niet alijtd helemeel strak
+ - Imvertor volgt heel strikt gml-xml encodingsrules. Bij het handmatige werk doe je dat niet alijtd helemeel strak
  - BRO wilde bepaalde informatie uit publieke XSD's verwijderen, zoals bijvorbeeld een annotatie dat het XSD met Imvertor gegenereerd is.
- - Imvertor heeft een versie een versiebeheermanier. 
- - Maar daar wijkt de BRO van af, dus dat wijzigen zij handmatig.
+ - Imvertor heeft een versie een versiebeheermanier. Maar daar wijkt de BRO van af, dus dat wijzigen zij handmatig.
  - Daarnaast wordt een Imvertor-bug handmatig gecorrigeerd: `xs:length` (=gefixeerde lengte) vervangen door `xs:maxLength` (hier gaat het volgens de MIM-standaard om: elke lengte mogelijk, maar tot een bepaald maximum).
 
 ## Relevantie voor DiSGeo
